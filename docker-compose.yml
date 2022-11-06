@@ -1,0 +1,50 @@
+version: '3'
+networks:
+  laravel:
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    #      - ./docker/nginx/default.conf:/etc/nginx/conf.d
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:5.7.22
+    container_name: mysql
+    command: [--ignore-db-dir=lost+found]
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: 'laravelapp'
+      MYSQL_USER: 'marta'
+      MYSQL_PASSWORD: '0707'
+      MYSQL_ROOT_PASSWORD: '0707'
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: php
+    volumes:
+      - .:/var/www/html
+      - ./docker/maven/.m2:/home/ubuntu/.m2/repository
+    ports:
+      - "9000:9000"
+    networks:
+      - laravel
+
